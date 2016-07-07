@@ -1,17 +1,18 @@
 {
-  "name": "sc-cluster-server",
+  "name": "sc-cluster-broker-server",
   "version": "1.0.0",
   "description": "Server for the SC cluster - For horizontal scalability.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/SocketCluster/sc-cluster-server.git"
+    "url": "https://github.com/SocketCluster/sc-cluster-broker-server.git"
   },
   "dependencies": {
-    "socketcluster": "4.x.x"
+    "socketcluster": "4.x.x",
+    "socketcluster-client": "4.x.x"
   },
   "keywords": [
     "SocketCluster",
@@ -21,7 +22,7 @@
   "author": "Jonathan Gros-Dubois",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/SocketCluster/sc-cluster-server/issues"
+    "url": "https://github.com/SocketCluster/sc-cluster-broker-server/issues"
   },
-  "homepage": "https://github.com/SocketCluster/sc-cluster-server"
+  "homepage": "https://github.com/SocketCluster/sc-cluster-broker-server"
 }
