@@ -48,6 +48,10 @@ var connectToClusterStateServer = function () {
     port: SC_CLUSTER_STATE_SERVER_PORT
   };
   var stateSocket = scClient.connect(scStateSocketOptions);
+  stateSocket.on('error', (err) => {
+    console.error(err);
+  });
+
   var stateSocketData = {
     instanceId: socketCluster.options.instanceId,
     instancePort: socketCluster.options.port,
