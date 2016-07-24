@@ -6,8 +6,13 @@ var DEFAULT_PORT = 8888;
 var SC_CLUSTER_STATE_SERVER_HOST = argv.cssh || process.env.SC_CLUSTER_STATE_SERVER_HOST;
 var SC_CLUSTER_STATE_SERVER_PORT = Number(process.env.SC_CLUSTER_STATE_SERVER_PORT) || 7777;
 var RETRY_DELAY = Number(argv.r) || Number(process.env.SC_CLUSTER_BROKER_SERVER_RETRY_DELAY) || 2000;
+var STATE_SERVER_CONNECT_TIMEOUT = Number(process.env.SC_CLUSTER_STATE_SERVER_CONNECT_TIMEOUT) || 3000;
+var STATE_SERVER_ACK_TIMEOUT = Number(process.env.SC_CLUSTER_STATE_SERVER_ACK_TIMEOUT) || 2000;
+var BROKER_SERVER_CONNECT_TIMEOUT = Number(process.env.SC_CLUSTER_BROKER_SERVER_CONNECT_TIMEOUT) || 10000;
+var BROKER_SERVER_ACK_TIMEOUT = Number(process.env.SC_CLUSTER_BROKER_SERVER_ACK_TIMEOUT) || 10000;
 var SECURE = !!argv.s || !!process.env.SC_CLUSTER_BROKER_SERVER_SECURE;
 var LOG_LEVEL = Number(argv.l) || Number(process.env.SC_CLUSTER_BROKER_SERVER_LOG_LEVEL) || 1;
+var RECONNECT_RANDOMNESS = 1000;
 
 if (!SC_CLUSTER_STATE_SERVER_HOST) {
   throw new Error('No SC_CLUSTER_STATE_SERVER_HOST was specified - This should be provided ' +
@@ -25,6 +30,8 @@ var options = {
   brokerController: argv.bc || process.env.SOCKETCLUSTER_BROKER_CONTROLLER || __dirname + '/broker.js',
   socketChannelLimit: Number(process.env.SOCKETCLUSTER_SOCKET_CHANNEL_LIMIT) || 1000,
   crashWorkerOnError: argv['auto-reboot'] != false,
+  connectTimeout: BROKER_SERVER_CONNECT_TIMEOUT,
+  ackTimeout: BROKER_SERVER_ACK_TIMEOUT,
   messageLogLevel: LOG_LEVEL
 };
 
@@ -45,9 +52,18 @@ var socketCluster = new SocketCluster(options);
 var connectToClusterStateServer = function () {
   var scStateSocketOptions = {
     hostname: SC_CLUSTER_STATE_SERVER_HOST,
-    port: SC_CLUSTER_STATE_SERVER_PORT
+    port: SC_CLUSTER_STATE_SERVER_PORT,
+    connectTimeout: STATE_SERVER_CONNECT_TIMEOUT,
+    ackTimeout: STATE_SERVER_ACK_TIMEOUT,
+    autoReconnectOptions: {
+      initialDelay: RETRY_DELAY,
+      randomness: RECONNECT_RANDOMNESS,
+      multiplier: 1,
+      maxDelay: RETRY_DELAY + RECONNECT_RANDOMNESS
+    }
   };
   var stateSocket = scClient.connect(scStateSocketOptions);
+
   stateSocket.on('error', (err) => {
     console.error(err);
   });
@@ -65,7 +81,8 @@ var connectToClusterStateServer = function () {
       }
     });
   };
-  emitJoinCluster();
+
+  stateSocket.on('connect', emitJoinCluster);
 };
 
 connectToClusterStateServer();
