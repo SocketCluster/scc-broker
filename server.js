@@ -6,6 +6,7 @@ var DEFAULT_PORT = 8888;
 var SCC_STATE_SERVER_HOST = argv.cssh || process.env.SCC_STATE_SERVER_HOST;
 var SCC_STATE_SERVER_PORT = Number(process.env.SCC_STATE_SERVER_PORT) || 7777;
 var SCC_INSTANCE_IP = process.env.SCC_INSTANCE_IP || null;
+var SCC_INSTANCE_IP_FAMILY = process.env.SCC_INSTANCE_IP_FAMILY || 'IPv4';
 var SCC_AUTH_KEY = process.env.SCC_AUTH_KEY || null;
 var RETRY_DELAY = Number(argv.r) || Number(process.env.SCC_BROKER_SERVER_RETRY_DELAY) || 2000;
 var STATE_SERVER_CONNECT_TIMEOUT = Number(process.env.SCC_STATE_SERVER_CONNECT_TIMEOUT) || 3000;
@@ -78,6 +79,7 @@ var connectToClusterStateServer = function () {
   var stateSocketData = {
     instanceId: socketCluster.options.instanceId,
     instanceIp: SCC_INSTANCE_IP,
+    instanceIpFamily: SCC_INSTANCE_IP_FAMILY,
     instancePort: socketCluster.options.port,
     instanceSecure: SECURE
   };
