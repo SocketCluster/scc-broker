@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "express": "4.13.1",
+    "minimist": "1.1.0",
     "sc-framework-health-check": "1.x.x",
     "socketcluster": "5.x.x",
     "socketcluster-client": "4.x.x"
