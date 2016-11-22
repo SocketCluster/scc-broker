@@ -11,6 +11,8 @@
     "url": "https://github.com/SocketCluster/sc-cluster-broker-server.git"
   },
   "dependencies": {
+    "express": "4.13.1",
+    "sc-framework-health-check": "1.x.x",
     "socketcluster": "5.x.x",
     "socketcluster-client": "4.x.x"
   },

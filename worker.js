@@ -1,9 +1,19 @@
 var url = require('url');
+var express = require('express');
+var healthChecker = require('sc-framework-health-check');
 
 module.exports.run = function (worker) {
   var AUTH_KEY = worker.options.clusterAuthKey;
 
+  var httpServer = worker.httpServer;
   var scServer = worker.scServer;
+
+  var app = express();
+
+  // Add GET /health-check express route
+  healthChecker.attach(worker, app);
+
+  httpServer.on('request', app);
 
   if (AUTH_KEY) {
     scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, (req, next) => {
