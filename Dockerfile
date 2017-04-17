@@ -1,8 +1,8 @@
 FROM node:6.3.0-slim
 MAINTAINER Jonathan Gros-Dubois
 
-LABEL version="1.1.0"
-LABEL description="Docker file for SC Cluster Broker Server"
+LABEL version="1.3.0"
+LABEL description="Docker file for SCC Broker Server"
 
 RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
