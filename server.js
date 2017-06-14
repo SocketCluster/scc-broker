@@ -31,7 +31,7 @@ var options = {
   appName: argv.n || process.env.SOCKETCLUSTER_APP_NAME || null,
   workerController: argv.wc || process.env.SOCKETCLUSTER_WORKER_CONTROLLER || __dirname + '/worker.js',
   brokerController: argv.bc || process.env.SOCKETCLUSTER_BROKER_CONTROLLER || __dirname + '/broker.js',
-  socketChannelLimit: Number(process.env.SOCKETCLUSTER_SOCKET_CHANNEL_LIMIT) || 1000,
+  socketChannelLimit: null,
   crashWorkerOnError: argv['auto-reboot'] != false,
   connectTimeout: BROKER_SERVER_CONNECT_TIMEOUT,
   ackTimeout: BROKER_SERVER_ACK_TIMEOUT,
