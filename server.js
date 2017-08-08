@@ -19,7 +19,7 @@ var RECONNECT_RANDOMNESS = 1000;
 
 if (!SCC_STATE_SERVER_HOST) {
   throw new Error('No SCC_STATE_SERVER_HOST was specified - This should be provided ' +
-    'either through the SCC_STATE_SERVER_PORT environment variable or ' +
+    'either through the SCC_STATE_SERVER_HOST environment variable or ' +
     'by passing a --cssh=hostname argument to the CLI');
 }
 
