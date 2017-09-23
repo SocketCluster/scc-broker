@@ -1,7 +1,7 @@
-FROM node:6.3.0-slim
+FROM node:8.4.0-slim
 MAINTAINER Jonathan Gros-Dubois
 
-LABEL version="1.3.0"
+LABEL version="1.5.2"
 LABEL description="Docker file for SCC Broker Server"
 
 RUN mkdir -p /usr/src/
