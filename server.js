@@ -1,4 +1,4 @@
-var SocketCluster = require('socketcluster').SocketCluster;
+var SocketCluster = require('socketcluster');
 var scClient = require('socketcluster-client');
 var argv = require('minimist')(process.argv.slice(2));
 

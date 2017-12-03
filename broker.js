@@ -1,2 +1,3 @@
-module.exports.run = function (broker) {
-};
+var SCBroker = require('socketcluster/scbroker');
+
+new SCBroker();
