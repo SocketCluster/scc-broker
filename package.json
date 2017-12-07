@@ -14,8 +14,8 @@
     "express": "4.13.1",
     "minimist": "1.1.0",
     "sc-framework-health-check": "~2.0.0",
-    "socketcluster": "~9.1.7",
-    "socketcluster-client": "~9.0.0"
+    "socketcluster": "~9.1.9",
+    "socketcluster-client": "~9.0.2"
   },
   "keywords": [
     "SocketCluster",
