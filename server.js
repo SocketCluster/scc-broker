@@ -22,7 +22,7 @@ var RECONNECT_RANDOMNESS = 1000;
  * 1 - errors only
  * 0 - log nothing
  */
-var LOG_LEVEL
+var LOG_LEVEL;
 if (typeof argv.l !== 'undefined') {
   LOG_LEVEL = Number(argv.l);
 } else if (typeof process.env.SCC_BROKER_SERVER_LOG_LEVEL !== 'undefined') {
