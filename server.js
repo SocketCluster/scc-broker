@@ -14,8 +14,22 @@ var STATE_SERVER_ACK_TIMEOUT = Number(process.env.SCC_STATE_SERVER_ACK_TIMEOUT) 
 var BROKER_SERVER_CONNECT_TIMEOUT = Number(process.env.SCC_BROKER_SERVER_CONNECT_TIMEOUT) || 10000;
 var BROKER_SERVER_ACK_TIMEOUT = Number(process.env.SCC_BROKER_SERVER_ACK_TIMEOUT) || 10000;
 var SECURE = !!argv.s || !!process.env.SCC_BROKER_SERVER_SECURE;
-var LOG_LEVEL = Number(argv.l) || Number(process.env.SCC_BROKER_SERVER_LOG_LEVEL) || 1;
 var RECONNECT_RANDOMNESS = 1000;
+/**
+ * Log levels:
+ * 3 - log everything
+ * 2 - warnings and errors
+ * 1 - errors only
+ * 0 - log nothing
+ */
+var LOG_LEVEL;
+if (typeof argv.l !== 'undefined') {
+  LOG_LEVEL = Number(argv.l);
+} else if (typeof process.env.SCC_BROKER_SERVER_LOG_LEVEL !== 'undefined') {
+  LOG_LEVEL = Number(process.env.SCC_BROKER_SERVER_LOG_LEVEL);
+} else {
+  LOG_LEVEL = 1;
+}
 
 if (!SCC_STATE_SERVER_HOST) {
   throw new Error('No SCC_STATE_SERVER_HOST was specified - This should be provided ' +
@@ -73,7 +87,9 @@ var connectToClusterStateServer = function () {
   var stateSocket = scClient.connect(scStateSocketOptions);
 
   stateSocket.on('error', (err) => {
-    console.error(err);
+    if (LOG_LEVEL > 0) {
+      console.error(err);
+    }
   });
 
   var stateSocketData = {
