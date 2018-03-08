@@ -22,9 +22,14 @@ var RECONNECT_RANDOMNESS = 1000;
  * 1 - errors only
  * 0 - log nothing
  */
-var LOG_LEVEL = (typeof argv.l !== 'undefined') ?
-  Number(argv.l) : (typeof process.env.SCC_BROKER_SERVER_LOG_LEVEL !== 'undefined') ?
-  Number(process.env.SCC_BROKER_SERVER_LOG_LEVEL) : 1;
+var LOG_LEVEL
+if (typeof argv.l !== 'undefined') {
+  LOG_LEVEL = Number(argv.l);
+} else if (typeof process.env.SCC_BROKER_SERVER_LOG_LEVEL !== 'undefined') {
+  LOG_LEVEL = Number(process.env.SCC_BROKER_SERVER_LOG_LEVEL);
+} else {
+  LOG_LEVEL = 1;
+}
 
 if (!SCC_STATE_SERVER_HOST) {
   throw new Error('No SCC_STATE_SERVER_HOST was specified - This should be provided ' +
@@ -82,7 +87,9 @@ var connectToClusterStateServer = function () {
   var stateSocket = scClient.connect(scStateSocketOptions);
 
   stateSocket.on('error', (err) => {
-    (LOG_LEVEL > 0) && console.error(err);
+    if (LOG_LEVEL > 0) {
+      console.error(err);
+    }
   });
 
   var stateSocketData = {
