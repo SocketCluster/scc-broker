@@ -1,6 +1,6 @@
 {
   "name": "scc-broker",
-  "version": "1.6.5",
+  "version": "1.6.4",
   "description": "Server for the SC cluster - For horizontal scalability.",
   "main": "server.js",
   "scripts": {
