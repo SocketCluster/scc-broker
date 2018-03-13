@@ -18,7 +18,7 @@ class Worker extends SCWorker {
     httpServer.on('request', app);
 
     if (AUTH_KEY) {
-      scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE, (req, next) => {
+      scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE_WS, (req, next) => {
         var urlParts = url.parse(req.url, true);
         if (urlParts.query && urlParts.query.authKey == AUTH_KEY) {
           next();
