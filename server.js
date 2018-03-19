@@ -101,7 +101,7 @@ var connectToClusterStateServer = function () {
   };
 
   var emitJoinCluster = () => {
-    stateSocket.emit('serverJoinCluster', stateSocketData, (err) => {
+    stateSocket.emit('sccBrokerJoinCluster', stateSocketData, (err) => {
       if (err) {
         setTimeout(emitJoinCluster, RETRY_DELAY);
       }
