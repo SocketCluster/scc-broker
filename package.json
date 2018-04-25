@@ -13,9 +13,9 @@
   "dependencies": {
     "express": "4.13.1",
     "minimist": "1.2.0",
-    "sc-framework-health-check": "~2.0.0",
-    "socketcluster": "~10.1.2",
-    "socketcluster-client": "~10.1.2"
+    "sc-framework-health-check": "^2.0.0",
+    "socketcluster": "^11.4.1",
+    "socketcluster-client": "^11.2.0"
   },
   "keywords": [
     "SocketCluster",
