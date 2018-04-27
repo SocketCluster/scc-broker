@@ -1,7 +1,7 @@
 FROM node:8-slim
 MAINTAINER Jonathan Gros-Dubois
 
-LABEL version="2.1.0"
+LABEL version="2.1.1"
 LABEL description="Docker file for SCC Broker Server"
 
 RUN mkdir -p /usr/src/
