@@ -41,7 +41,7 @@ var options = {
   workers: Number(argv.w) || Number(process.env.SOCKETCLUSTER_WORKERS) || 1,
   brokers: Number(argv.b) || Number(process.env.SOCKETCLUSTER_BROKERS) || 1,
   port: Number(argv.p) || Number(process.env.SOCKETCLUSTER_SERVER_PORT) || DEFAULT_PORT,
-  wsEngine: process.env.SOCKETCLUSTER_WS_ENGINE || 'uws',
+  wsEngine: process.env.SOCKETCLUSTER_WS_ENGINE || 'sc-uws',
   appName: argv.n || process.env.SOCKETCLUSTER_APP_NAME || null,
   workerController: argv.wc || process.env.SOCKETCLUSTER_WORKER_CONTROLLER || __dirname + '/worker.js',
   brokerController: argv.bc || process.env.SOCKETCLUSTER_BROKER_CONTROLLER || __dirname + '/broker.js',
