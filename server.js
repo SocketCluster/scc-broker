@@ -1,6 +1,8 @@
 var SocketCluster = require('socketcluster');
 var scClient = require('socketcluster-client');
 var argv = require('minimist')(process.argv.slice(2));
+var sccSemverReport = require('scc-semver-report');
+var sccSemverReporter = sccSemverReport(sccSemverReport.SCC_BROKER_PACKAGE_NAME);
 
 var DEFAULT_PORT = 8888;
 var SCC_STATE_SERVER_HOST = argv.cssh || process.env.SCC_STATE_SERVER_HOST;
@@ -85,6 +87,14 @@ var connectToClusterStateServer = function () {
   };
 
   var stateSocket = scClient.connect(scStateSocketOptions);
+
+  var sccSemverReportOptions = {
+    logLevel: LOG_LEVEL,
+    cssh: scStateSocketOptions.hostname,
+    cssp: scStateSocketOptions.port,
+    sccBrokerPort: options.port
+  };
+  sccSemverReporter.attach(stateSocket, sccSemverReportOptions);
 
   stateSocket.on('error', (err) => {
     if (LOG_LEVEL > 0) {
