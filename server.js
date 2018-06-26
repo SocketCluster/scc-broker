@@ -1,6 +1,7 @@
 var SocketCluster = require('socketcluster');
 var scClient = require('socketcluster-client');
 var argv = require('minimist')(process.argv.slice(2));
+var packageVersion = require('./package.json').version;
 
 var DEFAULT_PORT = 8888;
 var SCC_STATE_SERVER_HOST = argv.cssh || process.env.SCC_STATE_SERVER_HOST;
@@ -80,7 +81,10 @@ var connectToClusterStateServer = function () {
       maxDelay: RETRY_DELAY + RECONNECT_RANDOMNESS
     },
     query: {
-      authKey: SCC_AUTH_KEY
+      authKey: SCC_AUTH_KEY,
+      instancePort: socketCluster.options.port,
+      instanceType: 'scc-broker',
+      semver: packageVersion
     }
   };
 
@@ -96,7 +100,6 @@ var connectToClusterStateServer = function () {
     instanceId: socketCluster.options.instanceId,
     instanceIp: SCC_INSTANCE_IP,
     instanceIpFamily: SCC_INSTANCE_IP_FAMILY,
-    instancePort: socketCluster.options.port,
     instanceSecure: SECURE
   };
 
