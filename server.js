@@ -84,7 +84,7 @@ var connectToClusterStateServer = function () {
       authKey: SCC_AUTH_KEY,
       instancePort: socketCluster.options.port,
       instanceType: 'scc-broker',
-      semver: packageVersion
+      version: packageVersion
     }
   };
 
