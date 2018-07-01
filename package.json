@@ -1,6 +1,6 @@
 {
   "name": "scc-broker",
-  "version": "3.0.0",
+  "version": "6.0.0",
   "description": "Server for the SC cluster - For horizontal scalability.",
   "main": "server.js",
   "scripts": {
@@ -14,7 +14,7 @@
     "express": "^4.16.3",
     "minimist": "1.2.0",
     "sc-framework-health-check": "^2.0.0",
-    "socketcluster": "^13.1.7",
+    "socketcluster": "^13.1.8",
     "socketcluster-client": "^13.0.0"
   },
   "keywords": [
