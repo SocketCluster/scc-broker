@@ -8,7 +8,7 @@ const url = require('url');
 const express = require('express');
 
 const DEFAULT_PORT = 8888;
-const PORT = Number(process.env.AGC_STATE_SERVER_PORT) || DEFAULT_PORT;
+const PORT = Number(process.env.AGC_BROKER_SERVER_PORT) || DEFAULT_PORT;
 const AGC_INSTANCE_ID = uuid.v4();
 const AGC_STATE_SERVER_HOST = process.env.AGC_STATE_SERVER_HOST;
 const AGC_STATE_SERVER_PORT = Number(process.env.AGC_STATE_SERVER_PORT) || 7777;
