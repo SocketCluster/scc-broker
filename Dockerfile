@@ -1,7 +1,7 @@
-FROM node:8-slim
+FROM node:10-slim
 MAINTAINER Jonathan Gros-Dubois
 
-LABEL version="6.0.2"
+LABEL version="1.0.1"
 LABEL description="Docker file for AGC Broker Server"
 
 RUN mkdir -p /usr/src/

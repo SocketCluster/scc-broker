@@ -1,6 +1,6 @@
 {
   "name": "agc-broker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Server for the SC cluster - For horizontal scalability.",
   "main": "server.js",
   "scripts": {
