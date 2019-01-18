@@ -1,6 +1,7 @@
 const http = require('http');
 const eetase = require('eetase');
 const asyngularServer = require('asyngular-server');
+const Action = require('asyngular-server/action');
 const asyngularClient = require('asyngular-client');
 const uuid = require('uuid');
 const packageVersion = require('./package.json').version;
@@ -23,6 +24,7 @@ const BROKER_SERVER_ACK_TIMEOUT = Number(process.env.AGC_BROKER_SERVER_ACK_TIMEO
 const BROKER_SERVER_WS_ENGINE = process.env.AGC_BROKER_SERVER_WS_ENGINE || 'ws';
 const SECURE = !!process.env.AGC_BROKER_SERVER_SECURE;
 const RECONNECT_RANDOMNESS = 1000;
+
 /**
  * Log levels:
  * 3 - log everything
@@ -51,32 +53,45 @@ let agOptions = {
   ackTimeout: BROKER_SERVER_ACK_TIMEOUT
 };
 
-if (process.env.SOCKETCLUSTER_OPTIONS) {
-  Object.assign(agOptions, JSON.parse(process.env.SOCKETCLUSTER_OPTIONS));
+if (process.env.ASYNGULAR_OPTIONS) {
+  Object.assign(agOptions, JSON.parse(process.env.ASYNGULAR_OPTIONS));
 }
 
 let httpServer = eetase(http.createServer());
 let agServer = asyngularServer.attach(httpServer, agOptions);
 
 if (AGC_AUTH_KEY) {
-  agServer.addMiddleware(agServer.MIDDLEWARE_HANDSHAKE_WS, async (req) => {
-    let urlParts = url.parse(req.url, true);
-    if (!urlParts.query || urlParts.query.authKey !== AGC_AUTH_KEY) {
-      let err = new Error('Cannot connect to the cluster broker server without providing a valid authKey as a URL query argument.');
-      err.name = 'BadClusterAuthError';
-      throw err;
+  agServer.setMiddleware(agServer.MIDDLEWARE_HANDSHAKE, async (middlewareStream) => {
+    for await (let action of middlewareStream) {
+      if (action.type === Action.HANDSHAKE_WS) {
+        let urlParts = url.parse(action.request.url, true);
+        if (!urlParts.query || urlParts.query.authKey !== AGC_AUTH_KEY) {
+          let err = new Error('Cannot connect to the cluster broker server without providing a valid authKey as a URL query argument.');
+          err.name = 'BadClusterAuthError';
+          action.block(err);
+
+          continue;
+        }
+      }
+
+      action.allow();
     }
   });
 }
 
 if (LOG_LEVEL >= 2) {
-  agServer.addMiddleware(agServer.MIDDLEWARE_SUBSCRIBE, async (req) => {
-    console.log(`${req.socket.remoteAddress} subscribed to ${req.channel}`);
-  });
-}
-if (LOG_LEVEL >= 3) {
-  agServer.addMiddleware(agServer.MIDDLEWARE_PUBLISH_IN, async (req) => {
-    console.log(`${req.socket.remoteAddress} published to ${req.channel}`);
+  agServer.setMiddleware(agServer.MIDDLEWARE_INBOUND, async (middlewareStream) => {
+    for await (let action of middlewareStream) {
+      if (action.type === Action.SUBSCRIBE) {
+        console.log(`${action.socket.remoteAddress} subscribed to ${action.channel}`);
+      } else if (action.type === Action.PUBLISH_IN) {
+        if (LOG_LEVEL >= 3) {
+          console.log(`${action.socket.remoteAddress} published to ${action.channel}`);
+        }
+      }
+
+      action.allow();
+    }
   });
 }
 
