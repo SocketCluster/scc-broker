@@ -15,8 +15,8 @@
     "fs": "0.0.1-security",
     "minimist": "1.2.0",
     "sc-framework-health-check": "^2.0.0",
-    "socketcluster": "^14.3.0",
-    "socketcluster-client": "^14.2.1"
+    "socketcluster": "git+ssh@github.com:matth-c3/socketcluster.git",
+    "socketcluster-client": "git+ssh@github.com:matth-c3/socketcluster-client.git"
   },
   "keywords": [
     "socketcluster",
