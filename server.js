@@ -1,7 +1,8 @@
-var SocketCluster = require('socketcluster');
-var scClient = require('socketcluster-client');
+var SocketCluster = require('../socketcluster');
+var scClient = require('../socketcluster-client');
 var argv = require('minimist')(process.argv.slice(2));
 var packageVersion = require('./package.json').version;
+var fs = require('fs');
 
 var DEFAULT_PORT = 8888;
 var SCC_STATE_SERVER_HOST = argv.cssh || process.env.SCC_STATE_SERVER_HOST;
@@ -14,8 +15,23 @@ var STATE_SERVER_CONNECT_TIMEOUT = Number(process.env.SCC_STATE_SERVER_CONNECT_T
 var STATE_SERVER_ACK_TIMEOUT = Number(process.env.SCC_STATE_SERVER_ACK_TIMEOUT) || 2000;
 var BROKER_SERVER_CONNECT_TIMEOUT = Number(process.env.SCC_BROKER_SERVER_CONNECT_TIMEOUT) || 10000;
 var BROKER_SERVER_ACK_TIMEOUT = Number(process.env.SCC_BROKER_SERVER_ACK_TIMEOUT) || 10000;
-var SECURE = !!argv.s || !!process.env.SCC_BROKER_SERVER_SECURE;
 var RECONNECT_RANDOMNESS = 1000;
+
+
+/*
+*
+*  SOCKETCLUSTER_SECURE_COM : force https on the internal stack
+*  SOCKETCLUSTER_BROKER_SSL_KEY : ssl key for the broker http server
+*  SOCKETCLUSTER_BROKER_SSL_CERT : ssl cert for the broker http server
+*  SOCKETCLUSTER_BROKER_SSL_REJECT_UNAUTHORIZED : this is for the "socket-cluster-client" when connecting to the state. In case of self sign certificates.
+*
+*/
+var SOCKETCLUSTER_SECURE_COM = argv.sec || process.env.SOCKETCLUSTER_SECURE_COM || false;
+var SOCKETCLUSTER_BROKER_SSL_KEY = argv.sslk || process.env.SOCKETCLUSTER_BROKER_SSL_KEY || false;
+var SOCKETCLUSTER_BROKER_SSL_CERT = argv.sslc || process.env.SOCKETCLUSTER_BROKER_SSL_CERT || false;
+var SOCKETCLUSTER_BROKER_SSL_REJECT_UNAUTHORIZED = argv.sslru || process.env.SOCKETCLUSTER_BROKER_SSL_REJECT_UNAUTHORIZED || false;
+
+
 /**
  * Log levels:
  * 3 - log everything
@@ -23,7 +39,7 @@ var RECONNECT_RANDOMNESS = 1000;
  * 1 - errors only
  * 0 - log nothing
  */
-var LOG_LEVEL;
+var LOG_LEVEL, SOCKETCLUSTER_OPTIONS, SOCKETSTATE_OPTIONS;
 if (typeof argv.l !== 'undefined') {
   LOG_LEVEL = Number(argv.l);
 } else if (typeof process.env.SCC_BROKER_SERVER_LOG_LEVEL !== 'undefined') {
@@ -42,7 +58,7 @@ var options = {
   workers: Number(argv.w) || Number(process.env.SOCKETCLUSTER_WORKERS) || 1,
   brokers: Number(argv.b) || Number(process.env.SOCKETCLUSTER_BROKERS) || 1,
   port: Number(argv.p) || Number(process.env.SCC_BROKER_SERVER_PORT) || DEFAULT_PORT,
-  wsEngine: process.env.SOCKETCLUSTER_WS_ENGINE || 'sc-uws',
+  wsEngine: 'ws', //process.env.SOCKETCLUSTER_WS_ENGINE || 'sc-uws',
   appName: argv.n || process.env.SOCKETCLUSTER_APP_NAME || null,
   workerController: argv.wc || process.env.SOCKETCLUSTER_WORKER_CONTROLLER || __dirname + '/worker.js',
   brokerController: argv.bc || process.env.SOCKETCLUSTER_BROKER_CONTROLLER || __dirname + '/broker.js',
@@ -51,10 +67,36 @@ var options = {
   connectTimeout: BROKER_SERVER_CONNECT_TIMEOUT,
   ackTimeout: BROKER_SERVER_ACK_TIMEOUT,
   messageLogLevel: LOG_LEVEL,
-  clusterAuthKey: SCC_AUTH_KEY
+  clusterAuthKey: SCC_AUTH_KEY,
+  protocol : 'http'
 };
 
-var SOCKETCLUSTER_OPTIONS;
+
+
+SOCKETSTATE_OPTIONS = {
+  hostname: SCC_STATE_SERVER_HOST,
+  port: SCC_STATE_SERVER_PORT,
+  connectTimeout: STATE_SERVER_CONNECT_TIMEOUT,
+  ackTimeout: STATE_SERVER_ACK_TIMEOUT,
+  autoReconnectOptions: {
+    initialDelay: RETRY_DELAY,
+    randomness: RECONNECT_RANDOMNESS,
+    multiplier: 1,
+    maxDelay: RETRY_DELAY + RECONNECT_RANDOMNESS
+  },
+  secure : false,
+  rejectUnauthorized : false
+};
+
+if(typeof SOCKETCLUSTER_SECURE_COM === "string" && SOCKETCLUSTER_SECURE_COM === "true") {
+  options.protocol = 'https';
+  options.protocolOptions = {
+    key: (SOCKETCLUSTER_BROKER_SSL_KEY !== "false") ? fs.readFileSync(SOCKETCLUSTER_BROKER_SSL_KEY) : void 0,
+    cert: (SOCKETCLUSTER_BROKER_SSL_CERT !== "false") ? fs.readFileSync(SOCKETCLUSTER_BROKER_SSL_CERT) : void 0,
+  }
+  SOCKETSTATE_OPTIONS.secure = true;
+  SOCKETSTATE_OPTIONS.rejectUnauthorized = SOCKETCLUSTER_BROKER_SSL_REJECT_UNAUTHORIZED;
+}
 
 if (process.env.SOCKETCLUSTER_OPTIONS) {
   SOCKETCLUSTER_OPTIONS = JSON.parse(process.env.SOCKETCLUSTER_OPTIONS);
@@ -70,16 +112,8 @@ var socketCluster = new SocketCluster(options);
 
 var connectToClusterStateServer = function () {
   var scStateSocketOptions = {
-    hostname: SCC_STATE_SERVER_HOST,
-    port: SCC_STATE_SERVER_PORT,
-    connectTimeout: STATE_SERVER_CONNECT_TIMEOUT,
-    ackTimeout: STATE_SERVER_ACK_TIMEOUT,
-    autoReconnectOptions: {
-      initialDelay: RETRY_DELAY,
-      randomness: RECONNECT_RANDOMNESS,
-      multiplier: 1,
-      maxDelay: RETRY_DELAY + RECONNECT_RANDOMNESS
-    },
+    ...SOCKETSTATE_OPTIONS
+    ,
     query: {
       authKey: SCC_AUTH_KEY,
       instancePort: socketCluster.options.port,
@@ -100,7 +134,7 @@ var connectToClusterStateServer = function () {
     instanceId: socketCluster.options.instanceId,
     instanceIp: SCC_INSTANCE_IP,
     instanceIpFamily: SCC_INSTANCE_IP_FAMILY,
-    instanceSecure: SECURE
+    //instanceSecure: SECURE_COM
   };
 
   var emitJoinCluster = () => {

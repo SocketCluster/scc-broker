@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "express": "^4.16.3",
+    "fs": "0.0.1-security",
     "minimist": "1.2.0",
     "sc-framework-health-check": "^2.0.0",
     "socketcluster": "^14.3.0",
