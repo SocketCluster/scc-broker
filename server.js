@@ -132,7 +132,7 @@ var connectToClusterStateServer = function () {
     instanceId: socketCluster.options.instanceId,
     instanceIp: SCC_INSTANCE_IP,
     instanceIpFamily: SCC_INSTANCE_IP_FAMILY,
-    instanceSecure: SECURE_COM
+    instanceSecure: SOCKETCLUSTER_SECURE_COM
   };
 
   var emitJoinCluster = () => {
