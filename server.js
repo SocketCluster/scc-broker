@@ -71,8 +71,6 @@ var options = {
   protocol : 'http'
 };
 
-
-
 SOCKETSTATE_OPTIONS = {
   hostname: SCC_STATE_SERVER_HOST,
   port: SCC_STATE_SERVER_PORT,
@@ -134,7 +132,7 @@ var connectToClusterStateServer = function () {
     instanceId: socketCluster.options.instanceId,
     instanceIp: SCC_INSTANCE_IP,
     instanceIpFamily: SCC_INSTANCE_IP_FAMILY,
-    //instanceSecure: SECURE_COM
+    instanceSecure: SECURE_COM
   };
 
   var emitJoinCluster = () => {
