@@ -1,1 +1,5 @@
 node_modules/
+*.yaml
+.python-version
+ssl
+./docker-compose.yml
