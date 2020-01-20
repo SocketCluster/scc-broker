@@ -1,8 +1,8 @@
 FROM node:10-slim
 MAINTAINER Jonathan Gros-Dubois
 
-LABEL version="6.0.0"
-LABEL description="Docker file for AGC Broker Server"
+LABEL version="7.0.0"
+LABEL description="Docker file for SCC Broker Server"
 
 RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
