@@ -4,7 +4,7 @@ Server for the SC cluster - For SocketCluster horizontal scalability.
 ### Usage
 
 ```js
-SCC_STATE_SERVER_HOST='127.0.0.1' SCC_BROKER_SERVER_LOG_LEVEL=0 node server.js
+SCC_STATE_SERVER_HOST='127.0.0.1' SCC_BROKER_SERVER_LOG_LEVEL=1 node server.js
 ```
 
 ### Log levels
