@@ -15,7 +15,7 @@
     "express": "^4.18.2",
     "socketcluster-client": "^16.0.1",
     "socketcluster-server": "^16.0.0",
-    "uuid": "^3.3.2"
+    "uuid": "^3.4.0"
   },
   "keywords": [
     "socketcluster",
