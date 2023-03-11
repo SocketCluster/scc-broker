@@ -1,4 +1,4 @@
-FROM node:12.15.0-slim
+FROM node:18.15.0-slim
 MAINTAINER Jonathan Gros-Dubois
 
 LABEL version="8.0.0"
