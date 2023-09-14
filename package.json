@@ -1,6 +1,6 @@
 {
   "name": "scc-broker",
-  "version": "9.0.0",
+  "version": "9.0.1",
   "description": "Server for SCC - For horizontal scalability.",
   "main": "server.js",
   "scripts": {
@@ -11,9 +11,9 @@
     "url": "https://github.com/SocketCluster/scc-broker.git"
   },
   "dependencies": {
-    "socketcluster-client": "^17.1.1",
-    "socketcluster-server": "^17.3.1",
-    "eetase": "^5.0.0",
+    "socketcluster-client": "^18.0.1",
+    "socketcluster-server": "^18.0.1",
+    "eetase": "^6.0.0",
     "express": "^4.16.3",
     "uuid": "^3.3.2"
   },
