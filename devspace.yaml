@@ -1,0 +1,46 @@
+version: v2beta1
+
+name: scc-broker
+
+vars:
+  ISTIO_GATEWAY_NS:
+    value: ${DEVSPACE_NAMESPACE}
+  PROJECT_NAME:
+    value: scc-broker
+  DOCKER_REGISTRY:
+    value: 471112755134.dkr.ecr.us-east-1.amazonaws.com/development/game
+  PULL_SECRET:
+    source: env
+    default: ""
+  CODEARTIFACT_AUTH_TOKEN:
+    source: command
+    command: 'edctl aws shell -a Packages -r engineering -- aws codeartifact get-authorization-token --domain prodigyeducation --domain-owner 471112755134 --query authorizationToken --output text --region us-east-1'
+
+images:
+  app:
+    image: ${DOCKER_REGISTRY}/${PROJECT_NAME}/app
+    dockerfile: ./Dockerfile
+    tags:
+      - ${GITHUB_SHA}-####
+    buildArgs:
+      CODEARTIFACT_AUTH_TOKEN: ${CODEARTIFACT_AUTH_TOKEN}
+      GITHUB_SHA: ${GITHUB_SHA}
+    buildKit: 
+      args: ["--platform", "linux/arm64,linux/amd64"]
+
+profiles:
+  - name: candidate
+    merge:
+      images:
+        app:
+          tags:
+          - ${GITHUB_SHA}
+          kaniko:
+            pullSecret: ${PULL_SECRET}
+            skipPullSecretMount: false
+          buildArgs:
+            GIT_SHA: ${DEVSPACE_GIT_COMMIT}
+      vars:
+        CODEARTIFACT_AUTH_TOKEN:
+          source: command
+          command: 'aws codeartifact get-authorization-token --domain prodigyeducation --domain-owner 471112755134 --query authorizationToken --output text --region us-east-1'

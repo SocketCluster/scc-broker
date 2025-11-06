@@ -1,0 +1,14 @@
+version: 2
+registries:
+  codeartifact:
+    type: npm-registry
+    url: https://prodigyeducation-471112755134.d.codeartifact.us-east-1.amazonaws.com/npm/release/
+    token: ${{ secrets.CODEARTIFACT_AUTH_TOKEN }}
+updates:
+- package-ecosystem: "npm"
+  directory: "/"
+  registries:
+    - codeartifact
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 0

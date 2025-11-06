@@ -1,0 +1,44 @@
+name: Tag and Publish Production
+on:
+  release:
+    types:
+      - released
+concurrency:
+  group: scc-broker-production-release
+env:
+  AWS_ROLE_ARN: arn:aws:iam::471112755134:role/github-actions/github-oidc-SMARTeacher-scc-broker
+  PROJECT_NAME: scc-broker
+  ECR_REGISTRY: ${{ vars.ECR_HOSTNAME }}/release/game
+
+jobs:
+  publish-production:
+    runs-on: [self-hosted, k8s-staging, default]
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout shared Prodigy actions
+        uses: actions/checkout@v4
+        with:
+          repository: SMARTeacher/github-actions
+          ssh-key: ${{ secrets.GHA_KEY }}
+          path: .github/actions
+      - name: Promote candidate to production
+        uses: ./.github/actions/promote-image
+        with:
+          source-image: "${{env.ECR_REGISTRY}}/${{env.PROJECT_NAME}}/app:${{ github.sha }}"
+          target-image: "${{env.ECR_REGISTRY}}/${{env.PROJECT_NAME}}/app:${{ github.event.release.tag_name }}"
+          role-arn: ${{ env.AWS_ROLE_ARN }}
+      - name: Deploy Image
+        uses: ./.github/actions/deploy-image
+        with:
+          path: '"apps/game/prodigy-synapse/values/production.yaml"'
+          gitops_trigger_id: ${{ secrets.GITOPS_TRIGGER_ID }}
+          gitops_trigger_key: ${{ secrets.GITOPS_TRIGGER_KEY }}
+      - name: Report Deploy
+        uses: OpsLevel/report-deploy-github-action@v0.5.0
+        with:
+          integration_url: ${{ secrets.OL_INTEGRATION_URL }}
+          service: "prodigy_synapse"
+          description: "Deployed scc-broker:${{ github.event.release.tag_name }}"
+          environment: "production"

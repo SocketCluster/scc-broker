@@ -1,0 +1,72 @@
+name: Pull Requests
+
+on: pull_request
+concurrency:
+  group: scc-broker-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: [self-hosted, k8s-staging, default]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Login CodeArtifact
+        uses: SMARTeacher/github-actions/codeartifact-login@master
+        with:
+          repository: release
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+      - name: Restore node_modules Cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-cache-${{ hashFiles('package-lock.json') }}
+      - name: Install Dependencies
+        run: npm ci
+      - name: Run Test Coverage
+        run: npm run coverage -- --maxWorkers=2
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  static-analysis:
+    needs: sonarcloud
+    name: Static Analysis
+    runs-on:
+      - self-hosted
+      - k8s-staging
+      - default
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Login CodeArtifact
+        uses: SMARTeacher/github-actions/codeartifact-login@master
+        with:
+          repository: release
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+      - name: Restore node_modules Cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-cache-${{ hashFiles('package-lock.json') }}
+      - name: Install Dependencies
+        run: npm ci
+      - name: Run github-actions/lint-node-lockfile
+        uses: SMARTeacher/github-actions/lint-node-lockfile@master
+        with:
+          path: ./package-lock.json
+  
+

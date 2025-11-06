@@ -1,0 +1,139 @@
+name: Publish Pre-Production
+on:
+  push:
+    branches:
+      - "master"
+concurrency:
+  group: scc-broker-prerelease
+env:
+  AWS_ROLE_ARN: arn:aws:iam::471112755134:role/github-actions/github-oidc-SMARTeacher-scc-broker
+  PROJECT_NAME: scc-broker
+  ECR_REGISTRY: ${{ vars.ECR_HOSTNAME}}/release/game
+  ARGOCD_TOKEN: ${{ secrets.ARGOCD_TESTIMAGEBOT_TOKEN }}
+
+jobs:
+  test:
+    name: Tests
+    runs-on: [self-hosted, k8s-staging, default]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Login CodeArtifact
+        uses: SMARTeacher/github-actions/codeartifact-login@master
+        with:
+          repository: release
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+      - name: Restore node_modules Cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-cache-${{ hashFiles('package.json') }}
+      - name: Install Dependencies
+        run: npm ci
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  publish-candidate:
+    name: publish
+    needs: test
+    runs-on: [self-hosted, buildkitd]
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Checkout shared Prodigy actions
+        uses: actions/checkout@v4
+        with:
+          repository: SMARTeacher/github-actions
+          ssh-key: ${{ secrets.GHA_KEY }}
+          path: .github/actions
+      - name: Login CodeArtifact
+        uses: SMARTeacher/github-actions/codeartifact-login@master
+        with:
+          repository: release
+      - name: Setup devspace
+        uses: ./.github/actions/setup-devspace
+        with:
+          version: v6.3.14
+          nvmrc: ".nvmrc"
+      - name: Publish Docker image
+        uses: ./.github/actions/ecr-publish
+        with:
+          build-command: devspace build -p candidate -n ci -t ${{ github.sha }} --var DOCKER_REGISTRY=${{ env.ECR_REGISTRY }}
+          role-arn: ${{ env.AWS_ROLE_ARN }}
+
+  promote-pre-production:
+    name: Promote Pre-Production
+    needs: publish-candidate
+    runs-on: [self-hosted, k8s-staging, default]
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Checkout shared Prodigy actions
+        uses: actions/checkout@v4
+        with:
+          repository: SMARTeacher/github-actions
+          ssh-key: ${{ secrets.GHA_KEY }}
+          path: .github/actions
+      - name: Determine change impact
+        id: change_impact
+        uses: "./.github/actions/change-impact"
+      - name: Bump staging semver and tag git
+        id: staging-semver
+        uses: ./.github/actions/semver-tagging
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          increment_level: ${{ steps.change_impact.outputs.increment_level }}
+          release_type: staging
+      - name: Bump dev semver and tag git
+        id: dev-semver
+        uses: ./.github/actions/semver-tagging
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          increment_level: ${{ steps.change_impact.outputs.increment_level }}
+          release_type: dev
+      - name: Tag image with semver (dev)
+        uses: ./.github/actions/promote-image
+        with:
+          source-image: "${{env.ECR_REGISTRY}}/${{env.PROJECT_NAME}}/app:${{ github.sha }}"
+          target-image: "${{env.ECR_REGISTRY}}/${{env.PROJECT_NAME}}/app:${{ steps.dev-semver.outputs.version }}"
+          role-arn: ${{ env.AWS_ROLE_ARN }}
+      - name: Tag image with semver (staging)
+        uses: ./.github/actions/promote-image
+        with:
+          source-image: "${{env.ECR_REGISTRY}}/${{env.PROJECT_NAME}}/app:${{ github.sha }}"
+          target-image: "${{env.ECR_REGISTRY}}/${{env.PROJECT_NAME}}/app:${{ steps.staging-semver.outputs.version }}"
+          role-arn: ${{ env.AWS_ROLE_ARN }}
+      - name: Update latest-staging tag in development registry
+        uses: ./.github/actions/promote-image
+        with:
+          source-image: "${{env.ECR_REGISTRY}}/${{env.PROJECT_NAME}}/app:${{ github.sha }}"
+          target-image: "471112755134.dkr.ecr.us-east-1.amazonaws.com/development/game/${{env.PROJECT_NAME}}/app:latest-staging"
+      - name: Deploy Image
+        uses: ./.github/actions/deploy-image
+        with:
+          path: '"apps/game/prodigy-synapse/values/dev.yaml","apps/game/prodigy-synapse/values/staging.yaml"'
+          gitops_trigger_id: ${{ secrets.GITOPS_TRIGGER_ID }}
+          gitops_trigger_key: ${{ secrets.GITOPS_TRIGGER_KEY }}
+      - name: draft release
+        uses: ./.github/actions/semver-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          pre-release-tag: ${{ steps.staging-semver.outputs.version }}
+          draft: true
