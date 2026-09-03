@@ -1,6 +1,6 @@
 {
   "name": "scc-broker",
-  "version": "10.0.0",
+  "version": "10.0.1",
   "description": "Server for SCC - For horizontal scalability.",
   "main": "server.js",
   "scripts": {
@@ -15,7 +15,10 @@
     "express": "^4.16.3",
     "socketcluster-client": "^20.0.1",
     "socketcluster-server": "^20.0.0",
-    "uuid": "^9.0.1"
+    "uuid": "^14.0.2"
+  },
+  "overrides": {
+    "qs": "^6.16.0"
   },
   "keywords": [
     "socketcluster",
